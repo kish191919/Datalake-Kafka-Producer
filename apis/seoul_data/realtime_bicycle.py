@@ -25,21 +25,28 @@ class RealtimeBicycle:
         end = 1000
         total_rows = []
         while True:
-            rslt = self._call_api(base_url, start, end)
-
-            # 상태코드 체크
-            if rslt.status_code != 200:
-                self.log.error(f'비정상 응답: status={rslt.status_code}, url={rslt.url}, '
-                               f'ctype={rslt.headers.get("Content-Type")}, body={rslt.text[:300]}')
-                time.sleep(30)
-                continue
-
-            # JSON 파싱
             try:
-                contents = rslt.json()
+                rslt = self._call_api(base_url, start, end)
+
+                # 상태코드 먼저 검증
+                if rslt.status_code != 200:
+                    self.log.error(f'비정상 응답: status={rslt.status_code}, url={rslt.url}, '
+                                   f'ctype={rslt.headers.get("Content-Type")}, body_head={rslt.text[:300]}')
+                    time.sleep(30)
+                    continue
+
+                # JSON으로 파싱 (예외 시 바디 앞부분 로깅)
+                try:
+                    contents = rslt.json()
+                except JSONDecodeError:
+                    self.log.error(f'JSON 파싱 실패: url={rslt.url}, ctype={rslt.headers.get("Content-Type")}, '
+                                   f'body_len={len(rslt.text)}, body_head={rslt.text[:300]}')
+                    time.sleep(30)
+                    continue
+
             except JSONDecodeError:
-                self.log.error(f'JSON 파싱 실패: url={rslt.url}, ctype={rslt.headers.get("Content-Type")}, '
-                               f'body_len={len(rslt.text)}, body_head={rslt.text[:300]}')
+                # (여긴 이제 거의 안 들어올 것)
+                self.log.error(f'요청 실패, {traceback.format_exc()}')
                 time.sleep(30)
                 continue
 
