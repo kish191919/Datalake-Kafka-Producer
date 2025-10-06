@@ -69,7 +69,7 @@ class RealtimeBicycle:
             url = f'{base_url}/{start}/{end}/{base_dt}'
         else:
             url = f'{base_url}/{start}/{end}'
-        rslt = requests.get(url, headers)
+        rslt = requests.get(url, headers=headers)
         return rslt
 
     def chk_dir(self):
